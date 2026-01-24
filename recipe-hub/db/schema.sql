@@ -23,7 +23,8 @@ CREATE TABLE recipes (
     description TEXT,
     image_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_public BOOLEAN DEFAULT TRUE
 );
 
 -- Steps Table
@@ -48,3 +49,36 @@ CREATE INDEX idx_steps_recipe_id ON steps(recipe_id);
 
 -- Search recipes by title (case-insensitive)
 CREATE INDEX idx_recipes_title ON recipes(LOWER(title));
+
+-- Enable RLS
+alter table users enable row level security;
+alter table recipes enable row level security;
+alter table steps enable row level security;
+
+-- Policies (Users can only manage their own recipes)
+-- Read recipes (public or own)
+create policy "Read public or own recipes"
+on recipes
+for select
+using (
+  is_public = true
+  OR auth.uid() = user_id
+);
+
+-- Create recipe (owner only)
+create policy "Create own recipes"
+on recipes
+for insert
+with check (auth.uid() = user_id);
+
+-- Update policy (owner only)
+create policy "Update own recipes"
+on recipes
+for update
+using (auth.uid() = user_id);
+
+-- Delete policy (owner only)
+create policy "Delete own recipes"
+on recipes
+for delete
+using (auth.uid() = user_id);

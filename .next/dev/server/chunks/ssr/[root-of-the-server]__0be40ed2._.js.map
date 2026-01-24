@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/GAME%20JHB%20CITY/Documents/Senior%20Project/RecipeHub/pages/index.js"],"sourcesContent":["export default function Home() {\r\n  return (\r\n    <div style={{ textAlign: \"center\", marginTop: \"50px\" }}>\r\n      <h1>Welcome to RecipeHub</h1>\r\n      <p>Your interactive recipe sharing platform</p>\r\n    </div>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,qKAAC;QAAI,OAAO;YAAE,WAAW;YAAU,WAAW;QAAO;;0BACnD,qKAAC;0BAAG;;;;;;0BACJ,qKAAC;0BAAE;;;;;;;;;;;;AAGT"}}]
+}
