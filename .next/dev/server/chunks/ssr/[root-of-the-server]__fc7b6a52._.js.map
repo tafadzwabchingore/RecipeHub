@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 18, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/GAME%20JHB%20CITY/Documents/Senior%20Project/RecipeHub/app/recipes/page.tsx"],"sourcesContent":["export default function RecipesPage() {\r\n  return (\r\n    <div className=\"flex-col gap-8 p-8\">\r\n        <p>Coming soon...</p>\r\n      \r\n    </div>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;kBACX,cAAA,8OAAC;sBAAE;;;;;;;;;;;AAIX"}}]
+}

@@ -3,6 +3,8 @@ import './globals.css';
 import { LogIn, User, UserCircle, Search, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { updateRecipe } from '@/lib/recipes';
+import { deleteRecipe } from '@/lib/recipes'
 
 export const metadata: Metadata = {
   title: "Recipe Hub",
