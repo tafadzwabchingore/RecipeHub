@@ -11,13 +11,15 @@ export default function HomePage() {
           backgroundImage: "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),url('/recipe_hub_hero_image.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundColor: 'rgba(0,0,0,0.9)'}}
+          backgroundColor: 'rgba(0,0,0,0.9)',
+        }}
+          
       >
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-black/40" />
 
         {/* Content on top of the image */}
-        <div className="relative z-10 text-white">
+        <div className="relative z-[1] text-white">
           <h1 className="font-bold text-4xl">Welcome to RecipeHub</h1>
           <p>Create, share, and discover recipes from home cooks everywhere.</p>
           <div className="mt-4 flex flex-row gap-4 justify-center">
