@@ -40,7 +40,7 @@ export default function LoginForm() {
         <input id="password" type="password" name="password" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
 
-      <button type="submit" disabled={loading} className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+      <button type="submit" disabled={loading} className="w-full py-2 px-4 bg-orange-600 text-white rounded-md hover:bg-orange-700">
         {loading ? 'Signing in…' : 'Login'}
       </button>
 

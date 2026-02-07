@@ -3,14 +3,17 @@
 import Link from 'next/link'
 import { Recipe } from '@/types/recipe'
 import { Trash, Pencil } from 'lucide-react';
+import { FavoriteButton } from './FavoriteButton';
 
 interface RecipeCardProps {
   recipe: Recipe
   showActions?: boolean
   onDelete?: (id: number) => void
+  isFavorited?: boolean
 }
 
-export default function RecipeCard({ recipe, showActions = false, onDelete }: RecipeCardProps) {
+export default function RecipeCard({ recipe, showActions = false, onDelete, isFavorited }: RecipeCardProps) {
+
   return (
     <div className="border border-gray-400 bg-white overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative">
@@ -48,18 +51,22 @@ export default function RecipeCard({ recipe, showActions = false, onDelete }: Re
             </span>
 
             <div className="flex gap-3">
-              <Link
+              <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorited as boolean}></FavoriteButton>
+              {isFavorited ? (null) :
+              <div className="flex gap-3">
+                <Link
                 href={`/dashboard/edit/${recipe.id}`}
                 className="text-blue-600 text-sm hover:underline"
-              >
-                <Pencil size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
-              </Link>
-              <button
-                onClick={() => onDelete?.(recipe.id)}
-                className="cursor-pointer text-red-600 text-sm hover:underline"
-              >
-                <Trash size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
-              </button>
+                >
+                  <Pencil size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
+                </Link>
+                <button
+                  onClick={() => onDelete?.(recipe.id)}
+                  className="cursor-pointer text-red-600 text-sm hover:underline"
+                >
+                  <Trash size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
+                </button>
+              </div>}
             </div>
           </div>
         )}

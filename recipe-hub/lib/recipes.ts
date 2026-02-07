@@ -25,6 +25,16 @@ export async function getUserRecipes(userId: string) {
   return data
 }
 
+export async function getUserFavoriteRecipes(userId: string) {
+  const { data, error } = await supabase
+    .from('favorites')
+    .select('*, recipes(*)')
+    .eq('user_id', userId)
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function createRecipe(recipe: Omit<Recipe, 'id' | 'created_at'>) {
   const { data, error } = await supabase
     .from('recipes')

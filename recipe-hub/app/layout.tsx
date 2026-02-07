@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Link from 'next/link';
 import MobileNav from '@/components/MobileNav';
 import DesktopNav from '@/components/DesktopNav';
 
@@ -16,8 +15,8 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <div className="min-h-screen flex flex-col sm:flex sm:flex-col sm:flex sm:bg-gray-500 sm:pb-1 sm:flex-row ">
+      <body className="h-screen overflow-x-hidden overflow-y-hidden">
+        <div className="h-full flex flex-col sm:flex sm:flex-col sm:flex sm:bg-gray-500 sm:flex-row p-1">
 
           <nav className="relative z-50 flex flex-row sm:flex sm:flex-col sm:w-48 sm:p-4 sm:justify-between sm:bg-gray-100 sm:m-1 sm:rounded-lg sm:text-gray-700 ">
 
@@ -31,8 +30,8 @@ export default async function RootLayout({
 
           </nav>
 
-          <div className="relative z-0 flex flex-col flex-1 bg-gray-100 m-1 rounded-lg text-gray-700">
-            <main className="flex-grow ">{children}</main>
+          <div className="z-0 flex flex-col flex-1 bg-gray-100 m-1 rounded-lg text-gray-700">
+            <main className="flex-grow overflow-y-auto">{children}</main>
             <footer className="flex h-8 justify-center bg-gray-200 items-center rounded-b-lg">
               <p>&copy; 2026 Recipe Hub</p>
             </footer>

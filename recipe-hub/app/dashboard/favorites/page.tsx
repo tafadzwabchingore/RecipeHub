@@ -1,49 +1,32 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getUserRecipes, deleteRecipe } from '@/lib/recipes'
+import { getUserFavoriteRecipes } from '@/lib/recipes'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
 import { Recipe } from '@/types/recipe'
 import RecipeCard from '@/components/RecipeCard'
-import { HeartIcon } from 'lucide-react'
 
-export default function DashboardPage() {
+export default function FavoritesPage() {
   const supabase = createClient()
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [isFavorited, setIsFavorited] = useState(false)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const recipes = await getUserRecipes(user.id)
-      setRecipes(recipes)
+      const favorites = await getUserFavoriteRecipes(user.id)
+      setRecipes(favorites.map((f: { recipes: Recipe; }) => f.recipes))
+      setIsFavorited(favorites.some((f: { recipes: Recipe; }) => f.recipes))
     }
     load()
-  }, [supabase])
-
-  async function handleDelete(id: number) {
-    if (!confirm('Delete this recipe?')) return
-    await deleteRecipe(id)
-    setRecipes(recipes.filter(r => r.id !== id))
-  }
+  }, [supabase, recipes])
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">My Recipes</h1>
-        <div className='flex justify-between items-center'>
-          <Link
-          href="/dashboard/new"
-          className="bg-orange-500 text-white px-4 py-2 rounded mr-4"
-        >
-          + New Recipe
-        </Link>
-        <Link href="dashboard/favorites">
-          <HeartIcon className="w-6 h-6 text-orange-500" />
-        </Link>
-        </div>
+        <h1 className="text-2xl font-bold">My Favorite Recipes</h1>
       </div>
 
       {recipes.length === 0 && <p>No recipes yet.</p>}
@@ -54,7 +37,7 @@ export default function DashboardPage() {
             key={recipe.id}
             recipe={recipe}
             showActions
-            onDelete={handleDelete}
+            isFavorited={isFavorited}
           />
         ))}
       </div>
