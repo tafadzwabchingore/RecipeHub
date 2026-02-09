@@ -24,8 +24,22 @@ export default function DashboardPage() {
 
   async function handleDelete(id: number) {
     if (!confirm('Delete this recipe?')) return
-    await deleteRecipe(id)
-    setRecipes(recipes.filter(r => r.id !== id))
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const recipe = recipes.find(r => r.id === id)
+    if (!recipe || recipe.user_id !== user.id) {
+      alert('You do not have permission to delete this recipe.')
+      return
+    }
+
+    try {
+      await deleteRecipe(id)
+      setRecipes(recipes.filter(r => r.id !== id))
+    } catch {
+      alert('Failed to delete recipe.')
+    }
   }
 
   return (

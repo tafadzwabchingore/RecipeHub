@@ -51,6 +51,17 @@ export async function updateRecipe(
   return data
 }
 
+export async function getRecipeById(id: number) {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data as Recipe
+}
+
 export async function deleteRecipe(id: number) {
   const { error } = await supabase
     .from('recipes')
