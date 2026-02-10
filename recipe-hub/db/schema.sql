@@ -55,6 +55,73 @@ alter table users enable row level security;
 alter table recipes enable row level security;
 alter table steps enable row level security;
 
+-- Favorites Table
+CREATE TABLE favorites (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
+    source VARCHAR(50) DEFAULT 'community',
+    external_id INTEGER,
+    title VARCHAR(255),
+    image_url VARCHAR(500),
+    source_url VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, recipe_id),
+    UNIQUE (user_id, source, external_id)
+);
+
+-- Ratings Table
+CREATE TABLE ratings (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
+    source VARCHAR(50) DEFAULT 'community',
+    external_id INTEGER,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, recipe_id),
+    UNIQUE (user_id, source, external_id)
+);
+
+alter table favorites enable row level security;
+alter table ratings enable row level security;
+
+create policy "Read own favorites"
+on favorites
+for select
+using (auth.uid() = user_id);
+
+create policy "Create own favorites"
+on favorites
+for insert
+with check (auth.uid() = user_id);
+
+create policy "Delete own favorites"
+on favorites
+for delete
+using (auth.uid() = user_id);
+
+create policy "Read own ratings"
+on ratings
+for select
+using (auth.uid() = user_id);
+
+create policy "Create or update own ratings"
+on ratings
+for insert
+with check (auth.uid() = user_id);
+
+create policy "Update own ratings"
+on ratings
+for update
+using (auth.uid() = user_id);
+
+create policy "Delete own ratings"
+on ratings
+for delete
+using (auth.uid() = user_id);
+
 -- Policies (Users can only manage their own recipes)
 -- Read recipes (public or own)
 create policy "Read public or own recipes"

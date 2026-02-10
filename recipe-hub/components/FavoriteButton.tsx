@@ -4,12 +4,25 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 
 type Props = {
-  recipeId: number;
   initialFavorited: boolean;
+  recipeId?: number;
+  source?: "community" | "spoonacular";
+  externalId?: number;
+  title?: string;
+  imageUrl?: string;
+  sourceUrl?: string;
 };
 
-export function FavoriteButton({ recipeId, initialFavorited }: Props) {
-  const [favorited, setFavorited] = useState(initialFavorited);
+export function FavoriteButton({
+  recipeId,
+  source = "community",
+  externalId,
+  title,
+  imageUrl,
+  sourceUrl,
+  initialFavorited
+}: Props) {
+  const [favorited, setFavorited] = useState(Boolean(initialFavorited));
   const [loading, setLoading] = useState(false);
 
   async function toggleFavorite() {
@@ -20,10 +33,14 @@ export function FavoriteButton({ recipeId, initialFavorited }: Props) {
     setFavorited(!prev); 
 
     try {
+      const payload = recipeId
+        ? { recipeId }
+        : { source, externalId, title, imageUrl, sourceUrl };
+
       const res = await fetch("/api/favorites", {
         method: prev ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Request failed");
