@@ -1,23 +1,14 @@
 -- ==================================================
 -- RecipeHub Database Schema
--- Foundational Phase Tables: users, recipes, steps
+-- Foundational Phase Tables: recipes, steps
+-- Uses Supabase Auth for user management (auth.users)
 -- ==================================================
 
--- Users Table
--- User Account Information & Authentication
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Recipes Table
--- Recipe Metadata & Link to Author
+-- Recipe Metadata & Link to Author (via Supabase Auth)
 CREATE TABLE recipes (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     slug VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
@@ -28,13 +19,44 @@ CREATE TABLE recipes (
 );
 
 -- Steps Table
--- Stores step-by-step cooking istructions
+-- Stores step-by-step cooking instructions
 CREATE TABLE steps (
     id SERIAL PRIMARY KEY,
     recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
     step_order INTEGER NOT NULL,
     instruction TEXT NOT NULL,
     UNIQUE(recipe_id, step_order)
+);
+
+-- Favorites Table
+-- Tracks which users have favorited which recipes (community + external)
+CREATE TABLE favorites (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
+    source VARCHAR(50) DEFAULT 'community',
+    external_id INTEGER,
+    title VARCHAR(255),
+    image_url VARCHAR(500),
+    source_url VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, recipe_id),
+    UNIQUE (user_id, source, external_id)
+);
+
+-- Ratings Table
+-- Stores user ratings (1-5) for community and external recipes
+CREATE TABLE ratings (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
+    source VARCHAR(50) DEFAULT 'community',
+    external_id INTEGER,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, recipe_id),
+    UNIQUE (user_id, source, external_id)
 );
 
 -- ==================================================
@@ -50,35 +72,101 @@ CREATE INDEX idx_steps_recipe_id ON steps(recipe_id);
 -- Search recipes by title (case-insensitive)
 CREATE INDEX idx_recipes_title ON recipes(LOWER(title));
 
--- Enable RLS
-alter table users enable row level security;
-alter table recipes enable row level security;
-alter table steps enable row level security;
+-- Fast lookup of favorites by user
+CREATE INDEX idx_favorites_user_id ON favorites(user_id);
 
--- Policies (Users can only manage their own recipes)
--- Read recipes (public or own)
-create policy "Read public or own recipes"
-on recipes
-for select
-using (
+-- Fast lookup of ratings by user
+CREATE INDEX idx_ratings_user_id ON ratings(user_id);
+
+-- ==================================================
+-- Row Level Security
+-- ==================================================
+
+ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE steps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
+
+-- Recipes policies
+CREATE POLICY "Read public or own recipes"
+ON recipes
+FOR SELECT
+USING (
   is_public = true
   OR auth.uid() = user_id
 );
 
--- Create recipe (owner only)
-create policy "Create own recipes"
-on recipes
-for insert
-with check (auth.uid() = user_id);
+CREATE POLICY "Create own recipes"
+ON recipes
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
 
--- Update policy (owner only)
-create policy "Update own recipes"
-on recipes
-for update
-using (auth.uid() = user_id);
+CREATE POLICY "Update own recipes"
+ON recipes
+FOR UPDATE
+USING (auth.uid() = user_id);
 
--- Delete policy (owner only)
-create policy "Delete own recipes"
-on recipes
-for delete
-using (auth.uid() = user_id);
+CREATE POLICY "Delete own recipes"
+ON recipes
+FOR DELETE
+USING (auth.uid() = user_id);
+
+-- Steps policies
+CREATE POLICY "Read steps of accessible recipes"
+ON steps
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM recipes
+    WHERE recipes.id = steps.recipe_id
+    AND (recipes.is_public = true OR auth.uid() = recipes.user_id)
+  )
+);
+
+CREATE POLICY "Manage steps of own recipes"
+ON steps
+FOR ALL
+USING (
+  EXISTS (
+    SELECT 1 FROM recipes
+    WHERE recipes.id = steps.recipe_id
+    AND auth.uid() = recipes.user_id
+  )
+);
+
+-- Favorites policies
+CREATE POLICY "Read own favorites"
+ON favorites
+FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Create own favorites"
+ON favorites
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Delete own favorites"
+ON favorites
+FOR DELETE
+USING (auth.uid() = user_id);
+
+-- Ratings policies
+CREATE POLICY "Read own ratings"
+ON ratings
+FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Create or update own ratings"
+ON ratings
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Update own ratings"
+ON ratings
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Delete own ratings"
+ON ratings
+FOR DELETE
+USING (auth.uid() = user_id);

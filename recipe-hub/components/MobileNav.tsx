@@ -1,9 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Search, UserCircle, LogIn, LogOut } from 'lucide-react';
+import { Search, LogIn, LogOut } from 'lucide-react';
 import Hamburger from 'hamburger-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import DashboardMenu from './DashboardMenu';
+import DeleteAccountButton from './DeleteAccountButton';
 
 interface MobileNavProps {
     className?: string;
@@ -56,16 +58,17 @@ export default function MobileNav({ className }: MobileNavProps) {
                 />
             )}
 
-            <div className={`absolute w-full top-[3em] left-0 flex flex-col justify-between bg-white text-2xl p-2 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+            <div className={`absolute w-full top-[3em] left-0 flex flex-col justify-between bg-white text-2xl text-gray-700 p-2 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                 <div className="flex flex-col gap-2">
                     <Link href="/recipes" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
                         <Search /> Browse
                     </Link>
 
                     {user && (
-                        <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                            <UserCircle /> Dashboard
-                        </Link>
+                        <DashboardMenu
+                            variant="mobile"
+                            onNavigate={() => setIsOpen(false)}
+                        />
                     )}
                 </div>
 
@@ -74,9 +77,12 @@ export default function MobileNav({ className }: MobileNavProps) {
                         <LogIn /> Login
                     </Link>
                 ) : (
-                    <button onClick={handleSignOut} className="flex items-center gap-2 mt-4">
-                        <LogOut /> Logout
-                    </button>
+                    <div className="flex flex-col gap-3 mt-4">
+                        <button onClick={handleSignOut} className="flex items-center gap-2">
+                            <LogOut /> Logout
+                        </button>
+                        <DeleteAccountButton variant="mobile" onDone={() => setIsOpen(false)} />
+                    </div>
                 )}
             </div>
         </div>
