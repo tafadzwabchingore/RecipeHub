@@ -22,15 +22,12 @@ async function createClient() {
             },
             setAll(cookiesToSet) {
                 try {
-                    cookiesToSet.forEach(({ name, value, options }) => 
+                    cookiesToSet.forEach(({ name, value, options }) =>
                         cookieStore.set(name, value, options)
                     );
-                } catch (error) {
-                    // Cookie setting can fail in Server Components during initial render
-                    // This is expected and handled by middleware
-                    if (process.env.NODE_ENV === 'development') {
-                        console.warn('Failed to set cookies:', error);
-                    }
+                } catch {
+                    // Cookie setting fails in Server Components during initial render.
+                    // This is expected — the proxy (middleware) handles cookie refresh.
                 }
             },
         },
