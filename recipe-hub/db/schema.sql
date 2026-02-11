@@ -29,13 +29,34 @@ CREATE TABLE steps (
 );
 
 -- Favorites Table
--- Tracks which users have favorited which recipes
+-- Tracks which users have favorited which recipes (community + external)
 CREATE TABLE favorites (
     id SERIAL PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+    recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
+    source VARCHAR(50) DEFAULT 'community',
+    external_id INTEGER,
+    title VARCHAR(255),
+    image_url VARCHAR(500),
+    source_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, recipe_id)
+    UNIQUE (user_id, recipe_id),
+    UNIQUE (user_id, source, external_id)
+);
+
+-- Ratings Table
+-- Stores user ratings (1-5) for community and external recipes
+CREATE TABLE ratings (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
+    source VARCHAR(50) DEFAULT 'community',
+    external_id INTEGER,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, recipe_id),
+    UNIQUE (user_id, source, external_id)
 );
 
 -- ==================================================
@@ -54,6 +75,9 @@ CREATE INDEX idx_recipes_title ON recipes(LOWER(title));
 -- Fast lookup of favorites by user
 CREATE INDEX idx_favorites_user_id ON favorites(user_id);
 
+-- Fast lookup of ratings by user
+CREATE INDEX idx_ratings_user_id ON ratings(user_id);
+
 -- ==================================================
 -- Row Level Security
 -- ==================================================
@@ -61,9 +85,9 @@ CREATE INDEX idx_favorites_user_id ON favorites(user_id);
 ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
 
--- Policies (Users can only manage their own recipes)
--- Read recipes (public or own)
+-- Recipes policies
 CREATE POLICY "Read public or own recipes"
 ON recipes
 FOR SELECT
@@ -72,25 +96,22 @@ USING (
   OR auth.uid() = user_id
 );
 
--- Create recipe (owner only)
 CREATE POLICY "Create own recipes"
 ON recipes
 FOR INSERT
 WITH CHECK (auth.uid() = user_id);
 
--- Update policy (owner only)
 CREATE POLICY "Update own recipes"
 ON recipes
 FOR UPDATE
 USING (auth.uid() = user_id);
 
--- Delete policy (owner only)
 CREATE POLICY "Delete own recipes"
 ON recipes
 FOR DELETE
 USING (auth.uid() = user_id);
 
--- Steps: readable if parent recipe is readable
+-- Steps policies
 CREATE POLICY "Read steps of accessible recipes"
 ON steps
 FOR SELECT
@@ -102,7 +123,6 @@ USING (
   )
 );
 
--- Steps: writable only by recipe owner
 CREATE POLICY "Manage steps of own recipes"
 ON steps
 FOR ALL
@@ -114,20 +134,39 @@ USING (
   )
 );
 
--- Favorites: users can read their own favorites
+-- Favorites policies
 CREATE POLICY "Read own favorites"
 ON favorites
 FOR SELECT
 USING (auth.uid() = user_id);
 
--- Favorites: users can add their own favorites
 CREATE POLICY "Create own favorites"
 ON favorites
 FOR INSERT
 WITH CHECK (auth.uid() = user_id);
 
--- Favorites: users can remove their own favorites
 CREATE POLICY "Delete own favorites"
 ON favorites
+FOR DELETE
+USING (auth.uid() = user_id);
+
+-- Ratings policies
+CREATE POLICY "Read own ratings"
+ON ratings
+FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Create or update own ratings"
+ON ratings
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Update own ratings"
+ON ratings
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Delete own ratings"
+ON ratings
 FOR DELETE
 USING (auth.uid() = user_id);

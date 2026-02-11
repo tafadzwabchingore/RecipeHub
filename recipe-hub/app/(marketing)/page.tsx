@@ -1,11 +1,36 @@
 import Button from "@/components/Button";
 import { getPublicRecipes } from '@/lib/recipes'
 import RecipeCard from '@/components/RecipeCard'
+import SpoonacularRecipeCard, { SpoonacularRecipe } from '@/components/SpoonacularRecipeCard'
 import { getDailyRecipes } from "@/lib/getDailyRecipes";
 
-export default async function MarketingPage() {
+async function getFeaturedExternalRecipes() {
+  const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_KEY
+  if (!apiKey) return []
 
+  const params = new URLSearchParams({
+    apiKey,
+    number: '6'
+  })
+
+  const response = await fetch(
+    `https://api.spoonacular.com/recipes/random?${params.toString()}`,
+    { next: { revalidate: 600 } }
+  )
+
+  if (!response.ok) return []
+  const data = await response.json()
+  return (data?.recipes ?? []).map((recipe: SpoonacularRecipe) => ({
+    id: recipe.id,
+    title: recipe.title,
+    image: recipe.image,
+    sourceUrl: recipe.sourceUrl
+  }))
+}
+
+export default async function MarketingPage() {
   const recipes = await getPublicRecipes()
+  const featuredExternal = await getFeaturedExternalRecipes()
 
   return (
     <div className="flex flex-col gap-8">
@@ -35,13 +60,25 @@ export default async function MarketingPage() {
       </section>
 
       <section className="p-8">
-        <h2 className="text-2xl font-bold px-8 mb-4">Featured Recipes</h2>
+        <h2 className="text-2xl font-bold px-8 mb-4">Community Recipes</h2>
         <div className="px-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {getDailyRecipes(recipes, 3).map(recipe => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
         </div>
       </section>
+
+      {featuredExternal.length > 0 && (
+        <section className="p-8">
+          <h2 className="text-2xl font-bold px-8 mb-1">Featured Recipes</h2>
+          <p className="text-gray-600 px-8 mb-4">Powered by Spoonacular. Updated every 10 minutes.</p>
+          <div className="px-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredExternal.map((recipe: SpoonacularRecipe) => (
+              <SpoonacularRecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="flex bg-orange-500 p-8 h-48">
         <div className="w-full flex justify-end px-8">

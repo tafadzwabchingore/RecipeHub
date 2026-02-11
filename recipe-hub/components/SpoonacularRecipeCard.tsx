@@ -1,30 +1,30 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Recipe } from '@/types/recipe'
-import { Trash, Pencil, Star } from 'lucide-react';
-import { FavoriteButton } from './FavoriteButton';
+import { Star } from 'lucide-react'
+import { FavoriteButton } from './FavoriteButton'
 
-interface RecipeCardProps {
-  recipe: Recipe
-  showActions?: boolean
-  onDelete?: (id: number) => void
-  isFavorited?: boolean
-  isOwner?: boolean
+export interface SpoonacularRecipe {
+  id: number
+  title: string
+  image?: string
+  summary?: string
+  sourceUrl?: string
+}
+
+interface SpoonacularRecipeCardProps {
+  recipe: SpoonacularRecipe
+  initialFavorited?: boolean
   initialRating?: number
   averageRating?: number
 }
 
-export default function RecipeCard({
+export default function SpoonacularRecipeCard({
   recipe,
-  showActions = false,
-  onDelete,
-  isFavorited = false,
-  isOwner = false,
+  initialFavorited,
   initialRating = 0,
   averageRating
-}: RecipeCardProps) {
+}: SpoonacularRecipeCardProps) {
   const [rating, setRating] = useState(initialRating)
   const [ratingLoading, setRatingLoading] = useState(false)
 
@@ -37,7 +37,7 @@ export default function RecipeCard({
       const res = await fetch("/api/ratings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId: recipe.id, rating: value })
+        body: JSON.stringify({ source: "spoonacular", externalId: recipe.id, rating: value })
       })
       if (!res.ok) throw new Error("Request failed")
     } catch {
@@ -50,11 +50,12 @@ export default function RecipeCard({
   return (
     <div className="border border-gray-400 bg-white overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative">
-        {recipe.image_url ? (
+        {recipe.image ? (
           <img
-            src={recipe.image_url}
+            src={recipe.image}
             alt={recipe.title}
             className="w-full h-48 object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">
@@ -65,15 +66,22 @@ export default function RecipeCard({
       </div>
 
       <div className="p-3 flex flex-col justify-between h-44">
-        <h2 className="text-xl text-gray-800 font-semibold">{recipe.title}</h2>
+        <h2 className="text-xl font-semibold">{recipe.title}</h2>
 
-        {recipe.description && (
-          <p className="text-gray-600 mt-1 line-clamp-2">{recipe.description}</p>
+        {recipe.summary && (
+          <p className="text-gray-600 mt-1 line-clamp-2">{recipe.summary}</p>
         )}
 
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-2">
-            <FavoriteButton recipeId={recipe.id} initialFavorited={Boolean(isFavorited)} />
+            <FavoriteButton
+              source="spoonacular"
+              externalId={recipe.id}
+              title={recipe.title}
+              imageUrl={recipe.image}
+              sourceUrl={recipe.sourceUrl}
+              initialFavorited={Boolean(initialFavorited)}
+            />
             <span className="text-xs text-gray-500">Like</span>
           </div>
           <div className="flex items-center gap-1">
@@ -100,37 +108,15 @@ export default function RecipeCard({
           </div>
         )}
 
-        {showActions && (
-          <div className="flex items-center justify-between">
-            <span
-              className={`text-xs font-medium px-2 py-1 rounded ${
-                recipe.is_public
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {recipe.is_public ? 'Public' : 'Private'}
-            </span>
-
-            <div className="flex gap-3">
-              {isOwner && (
-                <>
-                  <Link
-                    href={`/dashboard/edit/${recipe.id}`}
-                    className="text-blue-600 text-sm hover:underline"
-                  >
-                    <Pencil size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
-                  </Link>
-                  <button
-                    onClick={() => onDelete?.(recipe.id)}
-                    className="cursor-pointer text-red-600 text-sm hover:underline"
-                  >
-                    <Trash size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+        {recipe.sourceUrl && (
+          <a
+            href={recipe.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm text-orange-600 hover:underline mt-2"
+          >
+            View full recipe
+          </a>
         )}
       </div>
     </div>
