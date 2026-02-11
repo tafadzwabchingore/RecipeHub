@@ -3,6 +3,7 @@ import { getPublicRecipes } from '@/lib/recipes'
 import RecipeCard from '@/components/RecipeCard'
 import SpoonacularRecipeCard, { SpoonacularRecipe } from '@/components/SpoonacularRecipeCard'
 import { getDailyRecipes } from "@/lib/getDailyRecipes";
+import FeatureSection from "@/components/FeatureSection";
 
 async function getFeaturedExternalRecipes() {
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_KEY
@@ -49,7 +50,7 @@ export default async function MarketingPage() {
         <div className="absolute inset-0 bg-black/40" />
 
         {/* Content on top of the image */}
-        <div className="relative z-[1] text-white">
+        <div className="relative z-[1] text-white max-w-[800px] mx-auto px-8">
           <h1 className="font-bold text-4xl">Welcome to RecipeHub</h1>
           <p>Create, share, and discover recipes from home cooks everywhere.</p>
           <div className="mt-4 flex flex-row gap-4 justify-center">
@@ -59,50 +60,57 @@ export default async function MarketingPage() {
         </div>
       </section>
 
-      <section className="p-8">
-        <h2 className="text-2xl font-bold px-8 mb-4">Community Recipes</h2>
-        <div className="px-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {getDailyRecipes(recipes, 3).map(recipe => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
-          ))}
+      <section className="py-8">
+        <div className="max-w-[800px] mx-auto px-8">
+          <h2 className="text-2xl font-bold mb-4">Community Recipes</h2>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {getDailyRecipes(recipes, 3).map(recipe => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
         </div>
       </section>
 
       {featuredExternal.length > 0 && (
-        <section className="p-8">
-          <h2 className="text-2xl font-bold px-8 mb-1">Featured Recipes</h2>
-          <p className="text-gray-600 px-8 mb-4">Powered by Spoonacular. Updated every 10 minutes.</p>
-          <div className="px-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredExternal.map((recipe: SpoonacularRecipe) => (
-              <SpoonacularRecipeCard key={recipe.id} recipe={recipe} />
-            ))}
+        <section className="py-8">
+          <div className="max-w-[800px] mx-auto px-8">
+            <h2 className="text-2xl font-bold mb-1">Featured Recipes</h2>
+            <p className="text-gray-600 mb-4">Powered by Spoonacular. Updated every 10 minutes.</p>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredExternal.map((recipe: SpoonacularRecipe) => (
+                <SpoonacularRecipeCard key={recipe.id} recipe={recipe} />
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      <section className="flex bg-orange-500 p-8 h-48">
-        <div className="w-full flex justify-end px-8">
-          <h2 className="text-2xl font-bold text-right">How it works</h2>
-        </div>
-      </section>
+      <FeatureSection 
+        title="How it works"
+        items={["Sign up for free", "Create and share recipes", "Rate, favorite, and build your collections"]}
+        titleAlign="right"
+        numbered
+        className="bg-orange-500"
+      />
 
-      <section className="p-8 h-48">
-        <div className="px-8">
-          <h2 className="text-2xl font-bold">Key Features</h2>
-        </div>
-      </section>
+      <FeatureSection
+        title="Key Features"
+        items={["Recipe creation with image uploads", "Browse community recipes", "Search by recipe name or ingredients", "Star ratings and favorites"]}
+      />
 
-      <section className="bg-orange-500 p-8 h-48">
-        <div>
-          <h2 className="text-2xl font-bold">Who we are</h2>
-        </div>
-      </section>
+      <FeatureSection
+        title="Who we are"
+        items={["We're a team of students and home cooks who believe great recipes shouldn't be locked behind paywalls or lost in cluttered feeds", "RecipeHub is built to give everyday cooks a simple place to share what they make, discover new ideas, and save the recipes they love"]}
+        titleAlign="center"
+        plain
+        className="bg-white text-gray-800"
+      />
 
-      <section className="p-8 h-48">
-        <div className="px-8">
-          <h2 className="text-2xl font-bold">Ready to share your recipes?</h2>
-        </div>
-      </section>
+      <FeatureSection 
+        title="Ready to share your recipes?"
+        titleAlign="center"
+        Button={<Button className="text-center" variant="primary" href="/register">Get Started</Button>}
+      />
     </div>
   );
 }
