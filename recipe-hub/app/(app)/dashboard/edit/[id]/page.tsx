@@ -1,23 +1,38 @@
 'use client'
 
 import { use, useEffect, useState, FormEvent } from 'react'
-import { updateRecipe, uploadRecipeImage } from '@/lib/recipes'
+import { getRecipeById, updateRecipe, uploadRecipeImage } from '@/lib/recipes'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Recipe } from '@/types/recipe'
 
 export default function EditRecipePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const supabase = createClient()
   const router = useRouter()
-  const [recipe, setRecipe] = useState<any>(null)
+  const [recipe, setRecipe] = useState<Recipe | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase
-      .from('recipes')
-      .select('*')
-      .eq('id', id)
-      .single()
-      .then(({ data }) => setRecipe(data))
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setError('You must be logged in to edit recipes.')
+        return
+      }
+
+      try {
+        const data = await getRecipeById(Number(id))
+        if (data.user_id !== user.id) {
+          setError('You do not have permission to edit this recipe.')
+          return
+        }
+        setRecipe(data)
+      } catch {
+        setError('Recipe not found.')
+      }
+    }
+    load()
   }, [])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -39,7 +54,8 @@ export default function EditRecipePage({ params }: { params: Promise<{ id: strin
     router.push('/dashboard')
   }
 
-  if (!recipe) return <p>Loading...</p>
+  if (error) return <p className="p-6 text-red-600">{error}</p>
+  if (!recipe) return <p className="p-6">Loading...</p>
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col p-6 space-y-4">
@@ -57,12 +73,12 @@ export default function EditRecipePage({ params }: { params: Promise<{ id: strin
         "  />
 
       <label className="
-        block 
-        mb-2.5 
-        text-sm 
-        font-medium 
+        block
+        mb-2.5
+        text-sm
+        font-medium
         text-heading
-      " 
+      "
       htmlFor="recipeImage">Recipe Image</label>
 
       {recipe.image_url && (
@@ -87,7 +103,7 @@ export default function EditRecipePage({ params }: { params: Promise<{ id: strin
       "
       type="file" name="recipeImage" accept="image/*" />
 
-      <textarea name="description" defaultValue={recipe.description} 
+      <textarea name="description" defaultValue={recipe.description}
         className="
           input
           rounded
@@ -97,11 +113,11 @@ export default function EditRecipePage({ params }: { params: Promise<{ id: strin
           focus-visible:ring-offset-2
           bg-gray-200
           p-2
-          "   
+          "
         rows={10}
       />
 
-      <button className="cursor pointer bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition duration-200" type="submit">
+      <button className="cursor-pointer bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition duration-200" type="submit">
         Update Recipe
       </button>
     </form>

@@ -56,7 +56,7 @@ export default function MobileNav({ className }: MobileNavProps) {
                 />
             )}
 
-            <div className={`absolute w-full top-[3em] left-0 flex flex-col justify-between bg-white text-2xl p-2 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+            <div className={`absolute w-full top-[3em] left-0 flex flex-col justify-between bg-white text-2xl text-gray-700 p-2 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                 <div className="flex flex-col gap-2">
                     <Link href="/recipes" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
                         <Search /> Browse

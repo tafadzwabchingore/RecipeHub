@@ -10,9 +10,10 @@ interface RecipeCardProps {
   showActions?: boolean
   onDelete?: (id: number) => void
   isFavorited?: boolean
+  isOwner?: boolean
 }
 
-export default function RecipeCard({ recipe, showActions = false, onDelete, isFavorited }: RecipeCardProps) {
+export default function RecipeCard({ recipe, showActions = false, onDelete, isFavorited = false, isOwner = false }: RecipeCardProps) {
 
   return (
     <div className="border border-gray-400 bg-white overflow-hidden hover:shadow-md transition-shadow">
@@ -32,7 +33,7 @@ export default function RecipeCard({ recipe, showActions = false, onDelete, isFa
       </div>
 
       <div className="p-3 flex flex-col justify-between h-40">
-        <h2 className="text-xl font-semibold">{recipe.title}</h2>
+        <h2 className="text-xl text-gray-800 font-semibold">{recipe.title}</h2>
 
         {recipe.description && (
           <p className="text-gray-600 mt-1 line-clamp-2">{recipe.description}</p>
@@ -51,22 +52,23 @@ export default function RecipeCard({ recipe, showActions = false, onDelete, isFa
             </span>
 
             <div className="flex gap-3">
-              <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorited as boolean}></FavoriteButton>
-              {isFavorited ? (null) :
-              <div className="flex gap-3">
-                <Link
-                href={`/dashboard/edit/${recipe.id}`}
-                className="text-blue-600 text-sm hover:underline"
-                >
-                  <Pencil size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
-                </Link>
-                <button
-                  onClick={() => onDelete?.(recipe.id)}
-                  className="cursor-pointer text-red-600 text-sm hover:underline"
-                >
-                  <Trash size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
-                </button>
-              </div>}
+              <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorited} />
+              {isOwner && (
+                <>
+                  <Link
+                    href={`/dashboard/edit/${recipe.id}`}
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    <Pencil size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
+                  </Link>
+                  <button
+                    onClick={() => onDelete?.(recipe.id)}
+                    className="cursor-pointer text-red-600 text-sm hover:underline"
+                  >
+                    <Trash size={16} className="hover:scale-150 transition duration-200 hover:font-bold" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
