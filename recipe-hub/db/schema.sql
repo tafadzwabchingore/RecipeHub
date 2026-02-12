@@ -37,6 +37,15 @@ CREATE TABLE steps (
     UNIQUE(recipe_id, step_order)
 );
 
+-- Recipe Details Table
+-- Stores checklist-friendly ingredients and steps for each recipe
+CREATE TABLE recipe_details (
+    recipe_id INTEGER PRIMARY KEY REFERENCES recipes(id) ON DELETE CASCADE,
+    ingredients TEXT[] DEFAULT ARRAY[]::TEXT[],
+    steps TEXT[] DEFAULT ARRAY[]::TEXT[],
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ==================================================
 -- Indexes for common queries
 -- ==================================================
@@ -47,6 +56,9 @@ CREATE INDEX idx_recipes_user_id ON recipes(user_id);
 -- Fast lookup of steps by recipe
 CREATE INDEX idx_steps_recipe_id ON steps(recipe_id);
 
+-- Fast lookup of checklist details by recipe
+CREATE INDEX idx_recipe_details_recipe_id ON recipe_details(recipe_id);
+
 -- Search recipes by title (case-insensitive)
 CREATE INDEX idx_recipes_title ON recipes(LOWER(title));
 
@@ -54,6 +66,7 @@ CREATE INDEX idx_recipes_title ON recipes(LOWER(title));
 alter table users enable row level security;
 alter table recipes enable row level security;
 alter table steps enable row level security;
+alter table recipe_details enable row level security;
 
 -- Favorites Table
 CREATE TABLE favorites (
@@ -149,3 +162,51 @@ create policy "Delete own recipes"
 on recipes
 for delete
 using (auth.uid() = user_id);
+
+-- Read checklist details for public recipes or owner recipes
+create policy "Read recipe details for public or own recipes"
+on recipe_details
+for select
+using (
+  exists (
+    select 1 from recipes
+    where recipes.id = recipe_details.recipe_id
+      and (recipes.is_public = true or recipes.user_id = auth.uid())
+  )
+);
+
+-- Create checklist details for own recipes
+create policy "Create recipe details for own recipes"
+on recipe_details
+for insert
+with check (
+  exists (
+    select 1 from recipes
+    where recipes.id = recipe_details.recipe_id
+      and recipes.user_id = auth.uid()
+  )
+);
+
+-- Update checklist details for own recipes
+create policy "Update recipe details for own recipes"
+on recipe_details
+for update
+using (
+  exists (
+    select 1 from recipes
+    where recipes.id = recipe_details.recipe_id
+      and recipes.user_id = auth.uid()
+  )
+);
+
+-- Delete checklist details for own recipes
+create policy "Delete recipe details for own recipes"
+on recipe_details
+for delete
+using (
+  exists (
+    select 1 from recipes
+    where recipes.id = recipe_details.recipe_id
+      and recipes.user_id = auth.uid()
+  )
+);
