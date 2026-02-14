@@ -1,10 +1,12 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
-import { getRecipeById } from '@/lib/recipes'
+import { getRecipeById, getRecipeDetails } from '@/lib/recipes'
 import { createClient } from '@/lib/supabase/client'
 import { Recipe } from '@/types/recipe'
 import { FavoriteButton } from '@/components/FavoriteButton'
+import RecipeExperience from '@/components/RecipeExperience'
+import { RecipeDetails } from '@/types/recipe'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
@@ -15,6 +17,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
+  const [details, setDetails] = useState<RecipeDetails | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -22,8 +25,12 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
         const { data: { user } } = await supabase.auth.getUser()
         if (user) setUserId(user.id)
 
-        const data = await getRecipeById(Number(id))
+        const [data, recipeDetails] = await Promise.all([
+          getRecipeById(Number(id)),
+          getRecipeDetails(Number(id))
+        ])
         setRecipe(data)
+        setDetails(recipeDetails)
       } catch {
         setError('Recipe not found.')
       } finally {
@@ -102,6 +109,12 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{recipe.description}</p>
         </div>
       )}
+
+      <RecipeExperience
+        recipeId={recipe.id}
+        ingredients={details?.ingredients ?? []}
+        steps={details?.steps ?? []}
+      />
     </div>
   )
 }

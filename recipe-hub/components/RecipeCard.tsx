@@ -64,7 +64,7 @@ export default function RecipeCard({
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent" />
       </div>
 
-      <div className="p-3 flex flex-col justify-between h-44">
+      <div className="p-3 flex flex-col justify-between min-h-44 gap-2">
         <h2 className="text-xl text-gray-800 font-semibold">{recipe.title}</h2>
 
         {recipe.description && (
@@ -99,6 +99,13 @@ export default function RecipeCard({
             <span>{averageRating.toFixed(1)} avg</span>
           </div>
         )}
+
+        <Link
+          href={`/recipes/${recipe.id}`}
+          className="text-sm text-orange-600 hover:underline"
+        >
+          View full recipe
+        </Link>
 
         {showActions && (
           <div className="flex items-center justify-between">

@@ -9,3 +9,9 @@ export interface Recipe {
   created_at?: string
   updated_at?: string
 }
+
+export interface RecipeDetails {
+  recipe_id: number
+  ingredients: string[]
+  steps: string[]
+}

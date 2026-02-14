@@ -28,6 +28,15 @@ CREATE TABLE steps (
     UNIQUE(recipe_id, step_order)
 );
 
+-- Recipe Details Table
+-- Stores checklist-friendly ingredients and steps for each recipe
+CREATE TABLE recipe_details (
+    recipe_id INTEGER PRIMARY KEY REFERENCES recipes(id) ON DELETE CASCADE,
+    ingredients TEXT[] DEFAULT ARRAY[]::TEXT[],
+    steps TEXT[] DEFAULT ARRAY[]::TEXT[],
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Favorites Table
 -- Tracks which users have favorited which recipes (community + external)
 CREATE TABLE favorites (
@@ -69,6 +78,9 @@ CREATE INDEX idx_recipes_user_id ON recipes(user_id);
 -- Fast lookup of steps by recipe
 CREATE INDEX idx_steps_recipe_id ON steps(recipe_id);
 
+-- Fast lookup of checklist details by recipe
+CREATE INDEX idx_recipe_details_recipe_id ON recipe_details(recipe_id);
+
 -- Search recipes by title (case-insensitive)
 CREATE INDEX idx_recipes_title ON recipes(LOWER(title));
 
@@ -84,6 +96,7 @@ CREATE INDEX idx_ratings_user_id ON ratings(user_id);
 
 ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE steps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recipe_details ENABLE ROW LEVEL SECURITY;
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
 
@@ -131,6 +144,51 @@ USING (
     SELECT 1 FROM recipes
     WHERE recipes.id = steps.recipe_id
     AND auth.uid() = recipes.user_id
+  )
+);
+
+-- Recipe details policies
+CREATE POLICY "Read recipe details for public or own recipes"
+ON recipe_details
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM recipes
+    WHERE recipes.id = recipe_details.recipe_id
+      AND (recipes.is_public = true OR recipes.user_id = auth.uid())
+  )
+);
+
+CREATE POLICY "Create recipe details for own recipes"
+ON recipe_details
+FOR INSERT
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM recipes
+    WHERE recipes.id = recipe_details.recipe_id
+      AND recipes.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Update recipe details for own recipes"
+ON recipe_details
+FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM recipes
+    WHERE recipes.id = recipe_details.recipe_id
+      AND recipes.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Delete recipe details for own recipes"
+ON recipe_details
+FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM recipes
+    WHERE recipes.id = recipe_details.recipe_id
+      AND recipes.user_id = auth.uid()
   )
 );
 

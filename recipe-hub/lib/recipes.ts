@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import { Recipe } from '@/types/recipe'
+import { Recipe, RecipeDetails } from '@/types/recipe'
 
 const supabase = createClient()
 
@@ -97,4 +97,39 @@ export async function uploadRecipeImage(file: File) {
     .getPublicUrl(filePath)
 
   return publicUrl
+}
+
+function normalizeChecklist(items: string[]) {
+  return items.map(item => item.trim()).filter(Boolean)
+}
+
+export async function getRecipeDetails(recipeId: number): Promise<RecipeDetails | null> {
+  const { data, error } = await supabase
+    .from('recipe_details')
+    .select('recipe_id, ingredients, steps')
+    .eq('recipe_id', recipeId)
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  if (!data) return null
+
+  return {
+    recipe_id: data.recipe_id,
+    ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
+    steps: Array.isArray(data.steps) ? data.steps : []
+  }
+}
+
+export async function upsertRecipeDetails(recipeId: number, ingredients: string[], steps: string[]) {
+  const payload: RecipeDetails = {
+    recipe_id: recipeId,
+    ingredients: normalizeChecklist(ingredients),
+    steps: normalizeChecklist(steps)
+  }
+
+  const { error } = await supabase
+    .from('recipe_details')
+    .upsert(payload, { onConflict: 'recipe_id' })
+
+  if (error) throw new Error(error.message)
 }
