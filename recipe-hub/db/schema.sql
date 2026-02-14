@@ -68,6 +68,17 @@ CREATE TABLE ratings (
     UNIQUE (user_id, source, external_id)
 );
 
+-- Comments Table
+-- Stores user comments on recipes
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ==================================================
 -- Indexes for common queries
 -- ==================================================
@@ -90,6 +101,12 @@ CREATE INDEX idx_favorites_user_id ON favorites(user_id);
 -- Fast lookup of ratings by user
 CREATE INDEX idx_ratings_user_id ON ratings(user_id);
 
+-- Fast lookup of comments by recipe
+CREATE INDEX idx_comments_recipe_id ON comments(recipe_id);
+
+-- Fast lookup of comments by user
+CREATE INDEX idx_comments_user_id ON comments(user_id);
+
 -- ==================================================
 -- Row Level Security
 -- ==================================================
@@ -99,6 +116,7 @@ ALTER TABLE steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recipe_details ENABLE ROW LEVEL SECURITY;
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 
 -- Recipes policies
 CREATE POLICY "Read public or own recipes"
@@ -228,3 +246,54 @@ CREATE POLICY "Delete own ratings"
 ON ratings
 FOR DELETE
 USING (auth.uid() = user_id);
+
+-- Comments policies
+CREATE POLICY "Read comments on accessible recipes"
+ON comments
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM recipes
+    WHERE recipes.id = comments.recipe_id
+    AND (recipes.is_public = true OR auth.uid() = recipes.user_id)
+  )
+);
+
+CREATE POLICY "Create own comments"
+ON comments
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Update own comments"
+ON comments
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Delete own comments"
+ON comments
+FOR DELETE
+USING (auth.uid() = user_id);
+
+-- ==================================================
+-- Functions
+-- ==================================================
+
+-- Fetch comments with author emails (SECURITY DEFINER to access auth.users)
+CREATE OR REPLACE FUNCTION get_comments_with_email(p_recipe_id INTEGER)
+RETURNS TABLE (
+  id INTEGER,
+  user_id UUID,
+  recipe_id INTEGER,
+  content TEXT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  user_email TEXT
+)
+LANGUAGE sql SECURITY DEFINER
+AS $$
+  SELECT c.id, c.user_id, c.recipe_id, c.content, c.created_at, c.updated_at, u.email AS user_email
+  FROM comments c
+  JOIN auth.users u ON c.user_id = u.id
+  WHERE c.recipe_id = p_recipe_id
+  ORDER BY c.created_at DESC;
+$$;
