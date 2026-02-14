@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Recipe } from '@/types/recipe'
 import { FavoriteButton } from '@/components/FavoriteButton'
 import RecipeExperience from '@/components/RecipeExperience'
+import CommentsSection from '@/components/CommentsSection'
 import { RecipeDetails } from '@/types/recipe'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -115,6 +116,8 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
         ingredients={details?.ingredients ?? []}
         steps={details?.steps ?? []}
       />
+
+      <CommentsSection recipeId={recipe.id} userId={userId} />
     </div>
   )
 }

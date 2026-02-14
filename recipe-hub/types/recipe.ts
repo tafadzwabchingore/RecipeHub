@@ -15,3 +15,13 @@ export interface RecipeDetails {
   ingredients: string[]
   steps: string[]
 }
+
+export interface Comment {
+  id: number
+  recipe_id: number
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+  user_email?: string
+}
