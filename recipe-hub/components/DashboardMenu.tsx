@@ -14,7 +14,7 @@ export default function DashboardMenu({ variant = 'desktop', onNavigate }: Dashb
   const isMobile = variant === 'mobile'
 
   return (
-    <div className={isMobile ? 'flex flex-col gap-2' : 'p-2 border rounded-lg'}>
+    <div className={isMobile ? 'flex flex-col gap-2' : 'border rounded-lg'}>
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
@@ -30,7 +30,7 @@ export default function DashboardMenu({ variant = 'desktop', onNavigate }: Dashb
           <Link href="/dashboard" onClick={onNavigate} className="hover:text-orange-600">
             My Recipes
           </Link>
-          <Link href="/dashboard/favorites" onClick={onNavigate} className="hover:text-orange-600">
+          <Link href="/dashboard/favorites" onClick={onNavigate} className="hover:text-orange-600 sm:mb-2">
             Favorites
           </Link>
         </div>
