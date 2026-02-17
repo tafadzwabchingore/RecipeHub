@@ -27,10 +27,25 @@ export default function DashboardMenu({ variant = 'desktop', onNavigate }: Dashb
 
       {open && (
         <div className={isMobile ? 'ml-8 flex flex-col gap-1 text-lg text-gray-700' : 'mt-2 ml-7 flex flex-col gap-1 text-sm text-gray-700'}>
-          <Link href="/dashboard" onClick={onNavigate} className="hover:text-orange-600">
+          <Link
+            href="/dashboard"
+            onClick={() => {
+              setOpen(false)
+              onNavigate?.()
+            }}
+            className="hover:text-orange-600"
+          >
             My Recipes
           </Link>
-          <Link href="/dashboard/favorites" onClick={onNavigate} className="hover:text-orange-600 sm:mb-2">
+
+          <Link
+            href="/dashboard/favorites"
+            onClick={() => {
+              setOpen(false)
+              onNavigate?.()
+            }}
+            className="hover:text-orange-600 sm:mb-2"
+          >
             Favorites
           </Link>
         </div>
