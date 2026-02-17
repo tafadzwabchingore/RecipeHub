@@ -1,3 +1,4 @@
+// chore: no functional changes
 'use client'
 
 import { useEffect, useState } from 'react'
