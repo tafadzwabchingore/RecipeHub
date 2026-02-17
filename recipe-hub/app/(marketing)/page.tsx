@@ -85,18 +85,23 @@ export default async function MarketingPage() {
         </section>
       )}
 
+      <hr className="border-t border-gray-300 my-6"></hr>
+
       <FeatureSection 
         title="How it works"
         items={["Sign up for free", "Create and share recipes", "Rate, favorite, and build your collections"]}
-        titleAlign="right"
         numbered
-        className="bg-orange-500"
+        className=""
       />
+
+      <hr className="border-t border-gray-300 my-6"></hr>
 
       <FeatureSection
         title="Key Features"
         items={["Recipe creation with image uploads", "Browse community recipes", "Search by recipe name or ingredients", "Star ratings and favorites"]}
       />
+
+      <hr className="border-t border-gray-300 my-6"></hr>
 
       <FeatureSection
         title="Who we are"
@@ -105,6 +110,8 @@ export default async function MarketingPage() {
         plain
         className="bg-white text-gray-800"
       />
+
+      <hr className="border-t border-gray-300 my-6"></hr>
 
       <FeatureSection 
         title="Ready to share your recipes?"
